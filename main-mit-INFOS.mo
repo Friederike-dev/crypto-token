@@ -1,6 +1,6 @@
 import Principal "mo:base/Principal";
 // principal type: it is a type for a user-defined type
-// with a principal id we can assign tokens to a user/owner
+// with a principal id we can assign tokens to a user
 
 import HashMap "mo:base/HashMap";
 import Debug "mo:base/Debug";
@@ -12,6 +12,10 @@ Debug.print("starting");
 
     let owner : Principal = Principal.fromText("vmxjc-bwydw-5xadp-sd45n-dmbzw-zkgkr-2jxp3-we64s-nwq2x-2d7si-jqe") : Principal; // type of principal
     // we get the text and convert it to a principal
+    // dfx principal id of the default user: vmxjc-bwydw-5xadp-sd45n-dmbzw-zkgkr-2jxp3-we64s-nwq2x-2d7si-jqe
+    // principal id of the frontend: 2vxsx-fae
+    // and there is another: canister prinicipal id for when we use a command in the terminal (see README.md file): rrkah-fqaaa-aaaaa-aaaaq-cai
+    // the user gets topUp tokens from this last id
 
     let totalSupply : Nat = 1000000000; // 1 billion tokens
     let symbol : Text = "jeddis";
@@ -49,6 +53,14 @@ Debug.print("starting");
         }
     };
 
+
+
+    
+
+    // in this function with Principal we supply the principal id of the user
+    // for that the principal id must be formatted to a format that the canister can understand
+    // we formatted and stored the principal id in the command line
+    // for that see the README.md file
     public query func balanceOf(who : Principal) : async Nat {
         // this function returns the balance of the user asynchronously as a Nat
         // we check if the user is in the ledger and return the value
@@ -77,7 +89,14 @@ Debug.print("starting");
             // here we can call the transfer function from within the actor
             // that way the caller will be this canister and not the frontend user
             // so the tokens will be transferred from the canister to the user (msg.caller)
+            // only problem: the caller id is a canister principal id which is not the same as the dfx principal id before.
+            // we gave the caller in the command line the variable name CANISTER_PUBLIC_KEY
+            // we transferred to CANISTER_PUBLIC_KEY half of the tokens
+            // from this half we can transfer to the user
+            // the remaining half stays with the canister with the principal id of the canister
             let result = await transfer(msg.caller, amount); 
+                // before the above we used this:
+                //balances.put(msg.caller, amount); // this adds the user to the ledger with the amount of tokens
 
 
             return result;
@@ -87,15 +106,18 @@ Debug.print("starting");
         }
 
     };
+    //with shared we can identify a principal id of the entity that called a function
 
     // in the transfer function we need two parameters: who we are going to transfer to and how much.
     public shared (msg) func transfer(to : Principal, amount : Nat) : async Text {
+        // let result = await payOut(); // the caller in this case is this canister/this actor. "msg.caller" would return the caller of the function
         
         // whoever triggers the function is going to be the one who is going to pay out (the frontend user)
-        let caller = msg.caller;
+        let caller = msg.caller; // this is the principal id of the user who called the function
         let fromBalance = await balanceOf(msg.caller);
 
         if (fromBalance > amount) {
+            // if the user does not have enough tokens we return an error message
             
             let newFromBalance : Nat = fromBalance - amount; // this is the new balance of the user who is sending the tokens
             balances.put(caller, newFromBalance); // this updates the balance of the user who is sending the tokens
@@ -108,6 +130,9 @@ Debug.print("starting");
             return "Insufficient funds";
         }
         
+        
+
+
     };
 
 };

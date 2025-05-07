@@ -7,9 +7,24 @@
 .DS_Store
 **/.DS_Store
 
-# dfx temporary files
-.dfx/
-
 # frontend code
 node_modules/
 dist/
+
+main-mit-INOFS.mo
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# DFX (lokale Entwicklungsdateien)
+.dfx/
+canister_ids.json
+
+# Build output
+dist/
+
+# Environment variables
+.env
